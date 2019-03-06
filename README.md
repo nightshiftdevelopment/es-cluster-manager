@@ -17,9 +17,9 @@ cd es-cluster-manager && npm install && npm run build
 After running these commands a new directory `bin` should appear in the es-cluster-manager with three binary files. One for each platform, linux, macos, and windows. You should run the respective binary for your platform.
 
 Alternatively you can just download the latest binaries for the specified platform:
-* [Linux](https://github.com/nightshiftdevelopment/es-cluster-manager/releases/download/v1.0.0/escm-macos)
-* [MacOs](https://github.com/nightshiftdevelopment/es-cluster-manager/releases/download/v1.0.0/escm-macos)
-* [Windows](https://github.com/nightshiftdevelopment/es-cluster-manager/releases/download/v1.0.0/escm-win.exe)
+* [Linux](https://github.com/nightshiftdevelopment/es-cluster-manager/releases/download/v.1.1.0/escm-linux)
+* [MacOs](https://github.com/nightshiftdevelopment/es-cluster-manager/releases/download/v.1.1.0/escm-macos)
+* [Windows](https://github.com/nightshiftdevelopment/es-cluster-manager/releases/download/v.1.1.0/escm-win.exe)
 
 
 ## Usage
