@@ -1,0 +1,39 @@
+{
+  "name": "es-cluster-manager",
+  "version": "1.0.0",
+  "description": "Manages Elastic Cluster Deployments in AWS",
+  "main": "escm.js",
+  "scripts": {
+    "test": "./node_modules/mocha/bin/mocha --timeout 10000",
+    "build": "./node_modules/.bin/pkg --out-path bin/ escm.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nightshiftdevelopment/es-cluster-manager.git"
+  },
+  "keywords": [
+    "elasticsearch",
+    "cluster",
+    "manager"
+  ],
+  "author": "Night Shift Development, Inc.",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nightshiftdevelopment/es-cluster-manager/issues"
+  },
+  "homepage": "https://github.com/nightshiftdevelopment/es-cluster-manager#readme",
+  "dependencies": {
+    "aws-sdk": "^2.353.0",
+    "commander": "^2.19.0",
+    "elasticsearch": "^15.2.0",
+    "inquirer": "^6.2.0",
+    "lodash": "^4.17.11",
+    "mocha": "^5.2.0"
+  },
+  "devDependencies": {
+    "pkg": "4.3.1"
+  },
+  "pkg": {
+    "assets": "bootstrap-scripts/*"
+  }
+}
