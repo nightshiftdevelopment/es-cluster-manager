@@ -1,5 +1,5 @@
 const AWS = require('aws-sdk');
-const defaultAMI = "ami-14c5486b";
+const defaultAMI = "ami-02da3a138888ced85";
 const fs = require('fs');
 const path = require('path');
 const _ = require('lodash');
@@ -10,7 +10,6 @@ class EC2Manager {
   constructor(options={}) {
     AWS.config.update({region: 'us-east-1'});
 
-    this.s3bucket = new AWS.S3({params: {Bucket: 'nsdtech.io'}});
     this.ec2Api = new AWS.EC2();
 
 
@@ -45,17 +44,10 @@ class EC2Manager {
     });
   }
 
-  __uploadKeyPairToS3(keyName, keyData) {
-
+  __saveKeyPair(keyName, keyData) {
     return new Promise((resolve, reject) => {
-      this.s3bucket.upload({Key: 'sshKeys/'+keyName+'.pem', Body: keyData}, function(uploadErr, upResponse) {
-        if (uploadErr) {
-          reject(uploadErr);
-        } else {
-          fs.writeFileSync('~/.ssh/' + keyName + '.pem', keyData);
-          resolve(true);
-        }
-      });
+      fs.writeFileSync('~/.ssh/' + keyName + '.pem', keyData);
+      resolve(true);
     });
   }
 
@@ -116,8 +108,8 @@ class EC2Manager {
         var keyData = values[0];
         esNodeParams.KeyName = keyName;
         if (keyData != true) { //this is a new key so let's store it
-          //upload the key to s3
-          this.__uploadKeyPairToS3(keyName, keyData);
+          //save the key pair locally
+          this.__saveKeyPair(keyName, keyData);
         }
 
 

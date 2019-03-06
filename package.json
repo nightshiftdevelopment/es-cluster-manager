@@ -1,6 +1,6 @@
 {
   "name": "es-cluster-manager",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Manages Elastic Cluster Deployments in AWS",
   "main": "escm.js",
   "scripts": {
