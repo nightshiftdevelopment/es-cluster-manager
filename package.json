@@ -27,7 +27,7 @@
     "commander": "^2.19.0",
     "elasticsearch": "^15.2.0",
     "inquirer": "^6.2.0",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.19",
     "mocha": "^5.2.0"
   },
   "devDependencies": {
