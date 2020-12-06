@@ -152,7 +152,6 @@ In particular, the following tags must be specified:
 * ES_CLUSTER_NAME
 * ES_MASTER_ELIGIBLE
 * ES_NODE_NAME_PREFIX
-* ES_MINIMUM_MASTER_NODES
 * ES_XPACK_ENABLED
 
 If the above listed tags are not all specified, the node will fail to be started and the escm scripts will not properly work.
