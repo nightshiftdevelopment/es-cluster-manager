@@ -98,7 +98,7 @@ If you specify an instance type it must be a valid AWS EC2 instance type that su
 KeyNames that are specified that do not already exist will be created and stored in the elasticsearch-management s3 bucket and locally in your ~/.ssh/ folder.
 
 ```bash
-$ ./bin/escm-macos create-cluster --clusterName mycluster -s 5 -k ES-NODES-KEY-PAIR
+$ ./bin/escm-macos create-cluster --clusterName mycluster -n 5 -k ES-NODES-KEY-PAIR
 ```
 
 The above creates a 5 node cluster named `mycluster`. By default ssh is only possible from nodes with the `elasticsearch-sg` security group attached to them. This security group is created by default if no security group is specified. If a security group is specified, access to those nodes will be dependent on the rules of that security group.

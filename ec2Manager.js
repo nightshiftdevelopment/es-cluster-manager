@@ -1,5 +1,5 @@
 const AWS = require('aws-sdk');
-const defaultAMI = "ami-02da3a138888ced85";
+const defaultAMI = "ami-04d29b6f966df1537";
 const fs = require('fs');
 const path = require('path');
 const _ = require('lodash');
@@ -34,7 +34,7 @@ class EC2Manager {
       var bootstrapFilePath = path.join(__dirname, 'bootstrap-scripts/bootstrap.sh')
       fs.readFile(bootstrapFilePath, 'utf8', function(err, contents) {
         if (!err) {
-          var bootstrapFile = new Buffer(contents).toString('base64');
+          var bootstrapFile = Buffer.from(contents).toString('base64');
 
           resolve(bootstrapFile);
         } else {
@@ -68,10 +68,39 @@ class EC2Manager {
     });
   }
 
+  //TODO: COMPELTE this is a stub that i still have to finish
+  async registerClusterNodesToELB(options, cb) {
+    var arn = null;
+    const AWSElbApi = new AWS.ELBv2();
+
+    //cluster name should be passed and we should get details of instance ids...
+    if (!options.elbARN) {
+      cb("No ELB ARN provided list of instanceids provided", null);
+      return;
+    }
+
+    var targetClusterInstanceIds = await clustgetClusterInstanceIds(options.clusterName);
+
+    var params = {
+     TargetGroupArn: options.elbARN,
+     Targets: Array.isArray(targetClusterInstanceIds) ? targetClusterInstanceIds.map(i=>({Id: i})) : [{Id: targetClusterInstanceIds}]
+    };
+
+    AWSElbApi.registerTargets(params, function(err, data) {
+      if (err) {
+        cb(err, null);
+      } else {
+        cb(null, "Finished associating instances to load balancer target group.");
+      }
+    });
+  }
+
   createNewCluster(options, cb) {
 
     var clusterName = options.clusterName;
     var clusterSize = options.clusterSize;
+    var clusterVersion = options.clusterVersion || "7.10.0";
+
     var remoteMonitoring = options.remoteMonitoring || "false";
     var monitoringCluster = options.monitoringCluster || null;
 
@@ -125,17 +154,23 @@ class EC2Manager {
         var numDataNodes = clusterSize - numMasters;
         console.log("Num data: " + numDataNodes);
 
-        //figure out minimum master nodes required for cluster
-        var minimum_master_nodes = parseInt(numMasters / 2 + 1);
-
+        var initial_master_nodes = "";
+        for (var amiIndex =0; amiIndex < numMasters; amiIndex++) {
+          if (amiIndex == (numMasters-1)) {
+            initial_master_nodes += `es-${clusterName}-master-seed-${amiIndex}`;
+          } else {
+            initial_master_nodes += `es-${clusterName}-master-seed-${amiIndex},`;
+          }
+        }
 
         //set the tags for master nodes
         var tags = [];
         tags.push({Key: "ES_CLUSTER_NAME", Value: clusterName });
+        tags.push({Key: "ES_VERSION", Value: clusterVersion });
+        tags.push({Key: "ES_INITIAL_MASTER_NODES", Value: initial_master_nodes});
         tags.push({Key: "ES_NODE_NAME_PREFIX", Value: "es-" + clusterName + "-master"});
         tags.push({Key: "Name", Value: "es-" + clusterName + "-master"});
-        tags.push({Key: "ES_MASTER_ELIGIBLE", Value: 'true'});
-        tags.push({Key: "ES_MINIMUM_MASTER_NODES", Value: ""+minimum_master_nodes });
+        tags.push({Key: "ES_NODE_ROLES", Value: "master, data, ingest, transform, ingest, ml, remote_cluster_client"});
         tags.push({Key: "ES_XPACK_ENABLED", Value: xpack_setting });
 
         //push any user defined tags
@@ -165,10 +200,10 @@ class EC2Manager {
           //set the tags for data nodes
           var tags = [];
           tags.push({Key: "ES_CLUSTER_NAME", Value: clusterName });
+          tags.push({Key: "ES_VERSION", Value: clusterVersion });
           tags.push({Key: "ES_NODE_NAME_PREFIX", Value: "es-" + clusterName + "-data"});
           tags.push({Key: "Name", Value: "es-" + clusterName + "-data"});
-          tags.push({Key: "ES_MASTER_ELIGIBLE", Value: 'false'});
-          tags.push({Key: "ES_MINIMUM_MASTER_NODES", Value: ""+minimum_master_nodes});
+          tags.push({Key: "ES_NODE_ROLES", Value: "data, ingest, transform, ingest, remote_cluster_client"});
           tags.push({Key: "ES_XPACK_ENABLED", Value: xpack_setting });
 
           if (remoteMonitoring == "true" && monitoringCluster != null) {
@@ -440,6 +475,7 @@ class EC2Manager {
       var numClientNodes = options.numClientNodes || 0;
 
       var clusterName = options.clusterName;
+      var clusterVersion = options.clusterVersion || "7.10.0";
 
       var xpack_setting = 'false'; //default
       if (options.xpackEnabled) {
@@ -462,7 +498,6 @@ class EC2Manager {
           var securityGroupIds = clusterInstances[0].SecurityGroups.map(sg => sg.GroupId);
 
           //new nodes should inherit these settings
-          var minimum_master_nodes = clusterInstances[0].Tags.filter(tag => tag.Key =="ES_MINIMUM_MASTER_NODES")[0].Value;
           var xpack_setting = clusterInstances[0].Tags.filter(tag => tag.Key =="ES_XPACK_ENABLED")[0].Value;
 
           //we can add these new nodes;
@@ -484,10 +519,10 @@ class EC2Manager {
             //set the master node tags
             var tags = [];
             tags.push({Key: "ES_CLUSTER_NAME", Value: clusterName });
+            tags.push({Key: "ES_VERSION", Value: clusterVersion });
             tags.push({Key: "ES_NODE_NAME_PREFIX", Value: "es-" + clusterName + "-master"});
             tags.push({Key: "Name", Value: "es-" + clusterName + "-master"});
-            tags.push({Key: "ES_MASTER_ELIGIBLE", Value: 'true'});
-            tags.push({Key: "ES_MINIMUM_MASTER_NODES", Value: ""+minimum_master_nodes });
+            tags.push({Key: "ES_NODE_ROLES", Value: "master, data, ingest, transform, ingest, ml, remote_cluster_client"});
             tags.push({Key: "ES_XPACK_ENABLED", Value: xpack_setting });
 
             masterParams.TagSpecifications[0].Tags = tags;
@@ -497,10 +532,10 @@ class EC2Manager {
             //set the tags for data nodes
             var dtags = [];
             dtags.push({Key: "ES_CLUSTER_NAME", Value: clusterName });
+            dtags.push({Key: "ES_VERSION", Value: clusterVersion });
             dtags.push({Key: "ES_NODE_NAME_PREFIX", Value: "es-" + clusterName + "-data"});
             dtags.push({Key: "Name", Value: "es-" + clusterName + "-data"});
-            dtags.push({Key: "ES_MASTER_ELIGIBLE", Value: 'false'});
-            dtags.push({Key: "ES_MINIMUM_MASTER_NODES", Value: ""+minimum_master_nodes});
+            dtags.push({Key: "ES_NODE_ROLES", Value: "data, ingest, transform, ingest, remote_cluster_client"});
             dtags.push({Key: "ES_XPACK_ENABLED", Value: xpack_setting });
 
             dataParams.TagSpecifications[0].Tags = dtags;
@@ -510,13 +545,10 @@ class EC2Manager {
             //set the tags for client nodes
             var ctags = [];
             ctags.push({Key: "ES_CLUSTER_NAME", Value: clusterName });
+            ctags.push({Key: "ES_VERSION", Value: clusterVersion });
             ctags.push({Key: "ES_NODE_NAME_PREFIX", Value: "es-" + clusterName + "-client"});
             ctags.push({Key: "Name", Value: "es-" + clusterName + "-client"});
-            ctags.push({Key: "ES_MASTER_ELIGIBLE", Value: 'false'});
-            ctags.push({Key: "ES_DATA_ELIGIBLE", Value: 'false'});
-            ctags.push({Key: "ES_INGEST_ELIGIBLE", Value: 'false'});
-            ctags.push({Key: "ES_CROSS_CLUSTER_ELIGIBLE", Value: 'false'});
-            ctags.push({Key: "ES_MINIMUM_MASTER_NODES", Value: ""+minimum_master_nodes});
+            ctags.push({Key: "ES_NODE_ROLES", Value: ""});
             ctags.push({Key: "ES_XPACK_ENABLED", Value: xpack_setting });
 
             clientParams.TagSpecifications[0].Tags = ctags;

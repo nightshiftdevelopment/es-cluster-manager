@@ -27,11 +27,11 @@
     "commander": "^2.19.0",
     "elasticsearch": "^15.2.0",
     "inquirer": "^6.2.0",
-    "lodash": "^4.17.11",
-    "mocha": "^5.2.0"
+    "lodash": "^4.17.20",
+    "mocha": "^8.2.1"
   },
   "devDependencies": {
-    "pkg": "4.3.1"
+    "pkg": "^4.4.9"
   },
   "pkg": {
     "assets": "bootstrap-scripts/*"

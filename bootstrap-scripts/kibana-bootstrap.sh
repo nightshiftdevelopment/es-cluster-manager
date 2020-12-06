@@ -17,10 +17,10 @@ kibana_instance_name=`aws ec2 describe-tags --filters "Name=resource-id,Values=$
 elasticsearch_hosts=`aws ec2 describe-tags --filters "Name=resource-id,Values=${instance_id}" | grep -2 ES_HOSTS | grep Value | cut -d ':' -f 2- | tr -d '"' | tr -d ',' | tr -d ' '`
 
 #grab the rpm for kibana
-wget https://artifacts.elastic.co/downloads/kibana/kibana-6.6.0-x86_64.rpm
+wget https://artifacts.elastic.co/downloads/kibana/kibana-7.10.0-x86_64.rpm
 
 #install kibana
-rpm --install kibana-6.6.0-x86_64.rpm
+rpm --install kibana-7.10.0-x86_64.rpm
 
 #update ec2-user with kibana group
 usermod -a -G kibana ec2-user
@@ -38,9 +38,9 @@ sed -i -e 's|#server.host: "localhost"|server.host: "0.0.0.0"|g' /etc/kibana/kib
 sed -i -e 's|#server.name: "your-hostname"|server.name: '"$kibana_instance_name"'|g' /etc/kibana/kibana.yml
 sed -i -e 's|#elasticsearch.hosts: \["http://localhost:9200"\]|elasticsearch.hosts: \["'"$elasticsearch_hosts"'"\]|g' /etc/kibana/kibana.yml
 
-
-
-service kibana start
-
+mkdir -p /var/log/kibana
 chown -R kibana:kibana /var/log/kibana
 chmod g+r /var/log/kibana/
+
+
+service -i kibana start

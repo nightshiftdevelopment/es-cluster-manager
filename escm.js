@@ -1,11 +1,7 @@
 const program = require('commander');
-const { prompt } = require('inquirer');
 const Ec2Manager = require('./ec2Manager');
 
 ec2Manager = new Ec2Manager();
-
-
-var tracker;
 
 program
   .version('1.0.0')
