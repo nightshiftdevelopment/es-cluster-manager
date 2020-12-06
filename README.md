@@ -107,7 +107,6 @@ The number of master and data nodes are automatically computed based on the clus
 * ES_CLUSTER_NAME - cluster name specified
 * ES_MASTER_ELIGIBLE - whether or not this node is master eligible
 * ES_NODE_NAME_PREFIX - `es-<clusterName>-<master|data>-<last octet of private ip address>`
-* ES_MINIMUM_MASTER_NODES - the minimum number of master nodes that need to exist for a cluster to form.
 
 Some of the tags above are used during the bootstrapping process of the nodes and are placed into the elasticsearch.yml script. See Boostrap section for more.
 
